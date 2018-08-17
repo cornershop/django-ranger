@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
     name='django-permissions',
     version='0.1',
-    packages=['django_permissions'],
+    packages=['django_permissions', 'django_permissions.migrations', 'django_permissions.tests'],
     include_package_data=True,
     license='BSD License',
     description='Parametrized Role Based Access Control (PRBAC) system',
