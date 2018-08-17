@@ -3,7 +3,7 @@ from __future__ import unicode_literals, absolute_import, print_function
 
 from django.db.models import Q
 
-from apps.user_roles.models import Permission, UserGrant, GroupGrant
+from .models import Permission
 
 
 def has_permission(user_id, action_name, **parameter_values):
