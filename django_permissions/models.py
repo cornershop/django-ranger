@@ -4,7 +4,19 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+
 from .exceptions import ParameterError
+
+
+class ValidatingGrantModel(object):
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        definition = self.permission.parameters_definition
+        values = self.parameter_values.keys()
+        if definition != values:
+            msg = u"parameter_values content is inconsistent with permission.parameters_definition {}-{}".format(
+                definition, values)
+            raise ParameterError(msg)
+        super(ValidatingGrantModel, self).save(force_insert, force_update, using, update_fields)
 
 
 @python_2_unicode_compatible
@@ -39,7 +51,7 @@ class Permission(models.Model):
         return self.code
 
 
-class UserGrant(models.Model):
+class UserGrant(ValidatingGrantModel, models.Model):
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -67,17 +79,8 @@ class UserGrant(models.Model):
     def __str__(self):
         return self.permission.code
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        definition = self.permission.parameters_definition
-        values = self.parameter_values.keys()
-        if definition != values:
-            msg = u"parameter_values content is inconsistent with permission.parameters_definition {}-{}".format(
-                definition, values)
-            raise ParameterError(msg)
-        super(UserGrant, self).save(force_insert, force_update, using, update_fields)
 
-
-class GroupGrant(models.Model):
+class GroupGrant(ValidatingGrantModel, models.Model):
 
     group = models.ForeignKey(
         'auth.Group',
@@ -104,12 +107,3 @@ class GroupGrant(models.Model):
 
     def __str__(self):
         return self.permission.code
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        definition = self.permission.parameters_definition
-        values = self.parameter_values.keys()
-        if definition != values:
-            msg = u"parameter_values content is inconsistent with permission.parameters_definition {}-{}".format(
-                definition, values)
-            raise ParameterError(msg)
-        super(GroupGrant, self).save(force_insert, force_update, using, update_fields)
