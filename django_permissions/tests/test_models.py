@@ -35,3 +35,35 @@ class ModelsTestCase(TestCase):
 
         created = UserGrant.objects.create(user=self.user, permission=can_view_permission)
         self.assertTrue(created)
+
+    def test_permission_repr(self):
+        can_view_permission = mommy.make("django_permissions.Permission", code=self.can_view_code)
+        expected_repr = 'Permission(%r, parameters=[])' % self.can_view_code
+        self.assertEqual(can_view_permission.__repr__(), expected_repr)
+
+    def test_permission_str(self):
+        can_view_permission = mommy.make("django_permissions.Permission", code=self.can_view_code)
+        self.assertEqual(can_view_permission.__str__(), self.can_view_code)
+
+    def test_user_grant_repr(self):
+        can_view_permission = mommy.make("django_permissions.Permission", code=self.can_view_code)
+        user_grant = mommy.make("django_permissions.UserGrant", user=self.user, permission=can_view_permission)
+        expected_repr = 'UserGrant(%r, permission=%r)' % (self.user.first_name, self.can_view_code)
+        self.assertEqual(user_grant.__repr__(), expected_repr)
+
+    def test_user_grant_str(self):
+        can_view_permission = mommy.make("django_permissions.Permission", code=self.can_view_code)
+        user_grant = mommy.make("django_permissions.UserGrant", user=self.user, permission=can_view_permission)
+        self.assertEqual(user_grant.__str__(), self.can_view_code)
+
+    def test_group_grant_repr(self):
+        can_view_permission = mommy.make("django_permissions.Permission", code=self.can_view_code)
+        group_grant = mommy.make("django_permissions.GroupGrant", group=self.group, permission=can_view_permission)
+        expected_repr = 'GroupGrant(%r, permission=%r)' % (self.group.name, self.can_view_code)
+        self.assertEqual(group_grant.__repr__(), expected_repr)
+
+    def test_group_grant_str(self):
+        can_view_permission = mommy.make("django_permissions.Permission", code=self.can_view_code)
+        group_grant = mommy.make("django_permissions.GroupGrant", group=self.group, permission=can_view_permission)
+        self.assertEqual(group_grant.__str__(), self.can_view_code)
+
