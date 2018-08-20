@@ -60,6 +60,12 @@ class UserGrant(models.Model):
     class Meta:
         unique_together = ('user', 'permission', 'parameter_values')
 
+    def __repr__(self):
+        return 'Grant(%r, permission=%r)' % (self.user.first_name, self.permission.code)
+
+    def __str__(self):
+        return self.permission.code
+
 
 class GroupGrant(models.Model):
 
@@ -82,3 +88,9 @@ class GroupGrant(models.Model):
 
     class Meta:
         unique_together = ('group', 'permission', 'parameter_values')
+
+    def __repr__(self):
+        return 'Grant(%r, permission=%r)' % (self.group.name, self.permission.code)
+
+    def __str__(self):
+        return self.permission.code
