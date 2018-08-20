@@ -1,9 +1,39 @@
 # Use modern Python
 from __future__ import unicode_literals, absolute_import, print_function
+import hashlib
+import json
 
 from django.db.models import Q
 
 from .models import Permission
+
+
+class PermissionManager(object):
+
+    def __init__(self, user):
+        self.data = []
+        self.user_grants = user.permission_user_grants.select_related('permission').all()
+        self.group_grants = user.permission_group_grants.select_related('permission').all()
+
+        self.set_grant_hashes(self.user_grants)
+        self.set_grant_hashes(self.group_grants)
+        self.data = list(set(self.data))
+
+    def set_grant_hashes(self, grants):
+        for grant in grants:
+            hash_code = self.get_hash(grant.permission.code, grant.parameter_values)
+            self.data.append(hash_code)
+
+    @staticmethod
+    def get_hash(permission_code, parameter_values):
+        parameters_string = json.dumps(parameter_values, sort_keys=True)
+        string_code = "{}-{}".format(permission_code, parameters_string)
+        hash_code = hashlib.sha256(string_code)
+        return hash_code
+
+    def has_permission(self, action_name, **parameter_values):
+        hash_code = self.get_hash(action_name, parameter_values)
+        return hash_code in self.data
 
 
 def has_permission(user_id, action_name, **parameter_values):
