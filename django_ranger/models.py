@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
-from django_permissions.django_permissions.validations import ValidatingGrantModel
+from .validations import ValidatingGrantModel
 
 
 @python_2_unicode_compatible

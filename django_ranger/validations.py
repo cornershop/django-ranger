@@ -1,4 +1,4 @@
-from django_permissions.django_permissions.exceptions import ParameterError
+from .exceptions import ParameterError
 
 
 class ValidatingGrantModel(object):
