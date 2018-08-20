@@ -3,7 +3,7 @@ from django.test import TestCase
 from model_mommy import mommy
 
 from ..models import Permission
-from ..services import has_permission
+from ..services import has_permission, has_group_grant, has_user_grant
 
 
 class HasPermissionTestCase(TestCase):
@@ -24,6 +24,10 @@ class HasPermissionTestCase(TestCase):
         response = has_permission(self.user.id, self.can_view_permission)
         self.assertTrue(response)
 
+    def test_permission_does_not_exist(self):
+        with self.assertRaises(Permission.DoesNotExist):
+            has_permission(self.user.id, "has_unexpected_permission:module")
+
     def test_user_has_permission_with_params(self):
         params = {
             "model_id": 1
@@ -31,7 +35,7 @@ class HasPermissionTestCase(TestCase):
         mommy.make("django_permissions.UserGrant", user=self.user,
                    permission=self.can_view_permission_with_param,
                    parameter_values=params)
-        response = has_permission(self.user.id, self.can_view_with_param_code, model_id=1)
+        response = has_user_grant(self.user.id, self.can_view_permission_with_param, params)
         self.assertTrue(response)
 
     def test_user_has_not_permission_with_params(self):
@@ -41,16 +45,16 @@ class HasPermissionTestCase(TestCase):
         mommy.make("django_permissions.UserGrant", user=self.user,
                    permission=self.can_view_permission_with_param,
                    parameter_values=params)
-        response = has_permission(self.user.id, self.can_view_with_param_code)
+        response = has_user_grant(self.user.id, self.can_view_permission_with_param)
         self.assertFalse(response)
 
     def test_user_has_not_permission(self):
-        response = has_permission(self.user.id, self.can_view_permission)
+        response = has_user_grant(self.user.id, self.can_view_permission)
         self.assertFalse(response)
 
     def test_user_group_has_permission(self):
         mommy.make("django_permissions.GroupGrant", group=self.group, permission=self.can_view_permission)
-        response = has_permission(self.user.id, self.can_view_permission)
+        response = has_group_grant(self.user.id, self.can_view_permission)
         self.assertTrue(response)
 
     def test_user_group_has_permission_with_params(self):
@@ -60,7 +64,7 @@ class HasPermissionTestCase(TestCase):
         mommy.make("django_permissions.GroupGrant", group=self.group,
                    permission=self.can_view_permission_with_param,
                    parameter_values=params)
-        response = has_permission(self.user.id, self.can_view_with_param_code, model_id=1)
+        response = has_group_grant(self.user.id, self.can_view_permission_with_param, params)
         self.assertTrue(response)
 
     def test_user_group_has_not_permission_with_params(self):
@@ -70,15 +74,12 @@ class HasPermissionTestCase(TestCase):
         mommy.make("django_permissions.GroupGrant", group=self.group,
                    permission=self.can_view_permission_with_param,
                    parameter_values=params)
-        response = has_permission(self.user.id, self.can_view_with_param_code)
+        response = has_group_grant(self.user.id, self.can_view_permission_with_param)
         self.assertFalse(response)
 
     def test_user_group_has_not_permission(self):
-        response = has_permission(self.user.id, self.can_view_permission)
+        response = has_group_grant(self.user.id, self.can_view_permission)
         self.assertFalse(response)
 
-    def test_permission_does_not_exist(self):
-        with self.assertRaises(Permission.DoesNotExist):
-            has_permission(self.user.id, "has_unexpected_permission:module")
 
 
