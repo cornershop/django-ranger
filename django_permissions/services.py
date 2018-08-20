@@ -25,7 +25,7 @@ def has_permission(user_id, action_name, **parameter_values):
     return False
 
 
-def has_user_grant(user_id, permission, parameter_values):
+def has_user_grant(user_id, permission, parameter_values=None):
     """
     Verify if one user have the given permission through UserGrant
     """
@@ -36,7 +36,7 @@ def has_user_grant(user_id, permission, parameter_values):
     ).exists()
 
 
-def has_group_grant(user_id, permission, parameter_values):
+def has_group_grant(user_id, permission, parameter_values=None):
     """
     Verify if one user have the given permission through GroupGrant
     """
