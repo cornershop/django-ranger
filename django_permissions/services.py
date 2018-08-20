@@ -5,15 +5,16 @@ import json
 
 from django.db.models import Q
 
-from .models import Permission
+from .models import Permission, GroupGrant
 
 
 class PermissionManager(object):
 
     def __init__(self, user):
         self.data = []
-        self.user_grants = user.permission_user_grants.select_related('permission').all()
-        self.group_grants = user.permission_group_grants.select_related('permission').all()
+        self.user_grants = user.user_grants.select_related('permission').all()
+        group_list = list(user.groups.all())
+        self.group_grants = GroupGrant.objects.filter(group__in=group_list).select_related('permission').all()
 
         self.set_grant_hashes(self.user_grants)
         self.set_grant_hashes(self.group_grants)
