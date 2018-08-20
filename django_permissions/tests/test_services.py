@@ -24,6 +24,11 @@ class HasPermissionTestCase(TestCase):
         response = has_permission(self.user.id, self.can_view_permission)
         self.assertTrue(response)
 
+    def test_has_group_permission(self):
+        mommy.make("django_permissions.GroupGrant", group=self.group, permission=self.can_view_permission)
+        response = has_permission(self.user.id, self.can_view_permission)
+        self.assertTrue(response)
+
     def test_has_not_permission(self):
         response = has_permission(self.user.id, self.can_view_permission)
         self.assertFalse(response)
