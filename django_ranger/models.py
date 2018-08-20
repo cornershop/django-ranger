@@ -10,6 +10,10 @@ from .validations import ValidatingGrantModel
 
 @python_2_unicode_compatible
 class Permission(models.Model):
+    """
+    A model class that stores permissions. It represents
+    the actions that the users can do.
+    """
 
     code = models.CharField(
         max_length=256,
@@ -41,6 +45,13 @@ class Permission(models.Model):
 
 
 class UserGrant(ValidatingGrantModel, models.Model):
+    """
+    A user grant model. This grant works as roles level permission over all
+    their instance when `parameters_values` is empty and work as object level
+    permission when it has any value. The parameter_values must correspond
+    with the `parameters_definition` of the permission.
+
+    """
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -70,6 +81,11 @@ class UserGrant(ValidatingGrantModel, models.Model):
 
 
 class GroupGrant(ValidatingGrantModel, models.Model):
+    """
+    A group grant model. Works like UserGrant, but grants permissions to user
+    groups. It allows create permissions groups and set or remove permissions
+    of the users more easily.
+    """
 
     group = models.ForeignKey(
         'auth.Group',
