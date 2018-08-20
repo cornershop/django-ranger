@@ -63,7 +63,7 @@ class UserGrant(ValidatingGrantModel, models.Model):
         unique_together = ('user', 'permission', 'parameter_values')
 
     def __repr__(self):
-        return 'Grant(%r, permission=%r)' % (self.user.first_name, self.permission.code)
+        return 'UserGrant(%r, permission=%r)' % (self.user.first_name, self.permission.code)
 
     def __str__(self):
         return self.permission.code
@@ -92,7 +92,7 @@ class GroupGrant(ValidatingGrantModel, models.Model):
         unique_together = ('group', 'permission', 'parameter_values')
 
     def __repr__(self):
-        return 'Grant(%r, permission=%r)' % (self.group.name, self.permission.code)
+        return 'GroupGrant(%r, permission=%r)' % (self.group.name, self.permission.code)
 
     def __str__(self):
         return self.permission.code
