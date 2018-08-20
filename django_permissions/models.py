@@ -34,7 +34,7 @@ class Permission(models.Model):
     )
 
     def __repr__(self):
-        return 'Permission(%r, parameters=%r)' % (self.code, self.parameters)
+        return 'Permission(%r, parameters=%r)' % (self.code, self.parameters_definition)
 
     def __str__(self):
         return self.code
