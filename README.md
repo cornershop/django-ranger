@@ -1,4 +1,4 @@
-## django_permissions
+## Django Ranger
 
 This is a application for permission management that works with 
 Parametrized Role Based Access Control (PRBAC) system.
