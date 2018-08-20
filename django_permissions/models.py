@@ -32,10 +32,10 @@ class Permission(models.Model):
     )
 
     def __repr__(self):
-        return 'Permission(%r, parameters=%r)' % (self.name, self.parameters)
+        return 'Permission(%r, parameters=%r)' % (self.code, self.parameters)
 
     def __str__(self):
-        return self.name
+        return self.code
 
 
 class UserGrant(models.Model):
