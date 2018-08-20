@@ -27,3 +27,11 @@ class ModelsTestCase(TestCase):
             UserGrant.objects.create(user=self.user,
                                      permission=can_view_permission,
                                      parameter_values={"model_id": 1})
+
+    def test_create_grant_without_param(self):
+        can_view_permission = mommy.make("django_permissions.Permission",
+                                         code=self.can_view_code,
+                                         parameters_definition=['model_id'])
+
+        created = UserGrant.objects.create(user=self.user, permission=can_view_permission)
+        self.assertTrue(created)
