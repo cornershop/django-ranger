@@ -3,7 +3,7 @@ from django.test import TestCase
 from model_mommy import mommy
 
 from ..models import Permission
-from ..services import has_permission, has_group_grant, has_user_grant
+from ..services import has_permission, has_group_grant, has_user_grant, PermissionManager
 
 
 class HasPermissionTestCase(TestCase):
@@ -19,10 +19,14 @@ class HasPermissionTestCase(TestCase):
                                                          code=self.can_view_with_param_code,
                                                          parameters_definition=["model_id"])
 
-    def test_user_has_permission(self):
+    def test_has_permission(self):
         mommy.make("django_permissions.UserGrant", user=self.user, permission=self.can_view_permission)
         response = has_permission(self.user.id, self.can_view_permission)
         self.assertTrue(response)
+
+    def test_has_not_permission(self):
+        response = has_permission(self.user.id, self.can_view_permission)
+        self.assertFalse(response)
 
     def test_permission_does_not_exist(self):
         with self.assertRaises(Permission.DoesNotExist):
@@ -80,6 +84,35 @@ class HasPermissionTestCase(TestCase):
     def test_user_group_has_not_permission(self):
         response = has_group_grant(self.user.id, self.can_view_permission)
         self.assertFalse(response)
+
+    def test_permission_manager_has_permission(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make("django_permissions.GroupGrant", group=self.group,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+        mommy.make("django_permissions.UserGrant", user=self.user, permission=self.can_view_permission)
+
+        user_permission = PermissionManager(self.user)
+        self.assertEqual(user_permission.group_grants.count(), 1)
+        self.assertEqual(user_permission.user_grants.count(), 1)
+        response = user_permission.has_permission(self.can_view_code)
+        self.assertTrue(response, user_permission.data)
+
+    def test_permission_manager_has_not_permission(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make("django_permissions.GroupGrant", group=self.group,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+
+        user_permission = PermissionManager(self.user)
+        self.assertEqual(user_permission.group_grants.count(), 1)
+        self.assertEqual(user_permission.user_grants.count(), 0)
+        response = user_permission.has_permission(self.can_view_code)
+        self.assertFalse(response, user_permission.data)
 
 
 
