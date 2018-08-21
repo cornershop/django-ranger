@@ -105,6 +105,19 @@ class HasPermissionTestCase(TestCase):
         response = user_permission.has_permission(self.can_view_code)
         self.assertTrue(response, user_permission.data)
 
+    def test_permission_manager_has_permission_without_param(self):
+
+        mommy.make("django_ranger.GroupGrant", group=self.group,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={})
+        mommy.make("django_ranger.UserGrant", user=self.user, permission=self.can_view_permission)
+
+        user_permission = PermissionManager(self.user)
+        self.assertEqual(user_permission.group_grants.count(), 1)
+        self.assertEqual(user_permission.user_grants.count(), 1)
+        response = user_permission.has_permission(self.can_view_code, model_id=1)
+        self.assertTrue(response, user_permission.data)
+
     def test_permission_manager_has_not_permission(self):
         params = {
             "model_id": 1
@@ -116,8 +129,20 @@ class HasPermissionTestCase(TestCase):
         user_permission = PermissionManager(self.user)
         self.assertEqual(user_permission.group_grants.count(), 1)
         self.assertEqual(user_permission.user_grants.count(), 0)
-        response = user_permission.has_permission(self.can_view_code)
+        response = user_permission.has_permission(self.can_view_with_param_code, model_id=2)
         self.assertFalse(response, user_permission.data)
 
+    def test_permission_manager_has_not_permission_without_param(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make("django_ranger.GroupGrant", group=self.group,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
 
+        user_permission = PermissionManager(self.user)
+        self.assertEqual(user_permission.group_grants.count(), 1)
+        self.assertEqual(user_permission.user_grants.count(), 0)
+        response = user_permission.has_permission(self.can_view_with_param_code)
+        self.assertFalse(response, user_permission.data)
 

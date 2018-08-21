@@ -50,8 +50,14 @@ class PermissionManager(object):
         the given parameters.
         """
         hash_code = self.get_hash(action_name, parameter_values)
-        return hash_code in self.data
+        if hash_code in self.data:
+            return True
 
+        hash_code = self.get_hash(action_name, {})
+        if hash_code in self.data:
+            return True
+
+        return False
 
 def has_permission(user_id, action_name, **parameter_values):
     """
