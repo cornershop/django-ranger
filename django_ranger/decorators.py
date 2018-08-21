@@ -26,6 +26,9 @@ def permission_required(action_list=None, *args, **kwargs):
             request = obj
             user = obj.user
 
+            if not user.is_authenticated():
+                return HttpResponseRedirect("/accounts/login/?next=" + request.path)
+
             user_permission = PermissionManager(user)
             if not user_permission.has_any_permission(action_list):
                 # TODO change URL for a url set in the django settings

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.test.client import RequestFactory
 from rest_framework.response import Response
@@ -60,3 +61,16 @@ class DecoratorTestCase(TestCase):
 
         with self.assertRaises(ValueError):
             view(Obj)
+
+    def test_user_not_authenticated(self):
+        UserGrant.objects.create(user=self.user,
+                                 permission=self.can_view_permission,
+                                 parameter_values={'country_code': 'CL'})
+
+        rf = RequestFactory()
+        request = rf.get("/url/")
+        request.user = AnonymousUser()
+        response = view(request)
+
+        self.assertEqual(response.status_code, 302)
+
