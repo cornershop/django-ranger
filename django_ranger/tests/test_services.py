@@ -146,3 +146,33 @@ class HasPermissionTestCase(TestCase):
         response = user_permission.has_permission(self.can_view_with_param_code)
         self.assertFalse(response, user_permission.data)
 
+    def test_permission_manager_has_any_permission(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make("django_ranger.GroupGrant", group=self.group,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+
+        action_list = [(self.can_view_with_param_code, {'model_id': 1}), (self.can_view_code, {})]
+
+        user_permission = PermissionManager(self.user)
+        response = user_permission.has_any_permission(action_list)
+        self.assertTrue(response, user_permission.data)
+
+    def test_permission_manager_has_not_any_permission(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make("django_ranger.GroupGrant", group=self.group,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+
+        action_list = [(self.can_view_with_param_code, {'model_id': 2}), (self.can_view_code, {})]
+
+        user_permission = PermissionManager(self.user)
+        response = user_permission.has_any_permission(action_list)
+        self.assertFalse(response, user_permission.data)
+
+
+
