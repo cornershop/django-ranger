@@ -7,6 +7,13 @@ from model_mommy import mommy
 from ..decorators import permission_required
 from ..models import UserGrant
 
+action_list = [('can_view:module', {'country_code': "MX"})]
+
+
+@permission_required(action_list)
+def view(*args, **kwargs):
+    return Response()
+
 
 class DecoratorTestCase(TestCase):
 
@@ -24,12 +31,6 @@ class DecoratorTestCase(TestCase):
                                  permission=self.can_view_permission,
                                  parameter_values={'country_code': 'MX'})
 
-        action_list = [('can_view:module', {'country_code': "MX"})]
-
-        @permission_required(action_list)
-        def view(*args, **kwargs):
-            return Response()
-
         rf = RequestFactory()
         request = rf.get("/url/")
         request.user = self.user
@@ -41,12 +42,6 @@ class DecoratorTestCase(TestCase):
         UserGrant.objects.create(user=self.user,
                                  permission=self.can_view_permission,
                                  parameter_values={'country_code': 'CL'})
-
-        action_list = [('can_view:module', {'country_code': "MX"})]
-
-        @permission_required(action_list)
-        def view(*args, **kwargs):
-            return Response()
 
         rf = RequestFactory()
         request = rf.get("/url/")
