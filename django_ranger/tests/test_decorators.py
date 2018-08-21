@@ -55,3 +55,13 @@ class DecoratorTestCase(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
+    def test_incorrect_request(self):
+        UserGrant.objects.create(user=self.user,
+                                 permission=self.can_view_permission,
+                                 parameter_values={'country_code': 'CL'})
+
+        class Obj(object):
+            pass
+
+        with self.assertRaises(ValueError):
+            view(Obj)

@@ -20,11 +20,11 @@ def permission_required(action_list=None, *args, **kwargs):
     def renderer(function):
         @wraps(function)
         def wrapper(obj, *args, **kwargs):
-            try:
-                request = obj
-                user = obj.user
-            except AttributeError:
+            if not hasattr(obj, "user"):
                 raise ValueError("ERROR: The specified object is not a proper request")
+
+            request = obj
+            user = obj.user
 
             user_permission = PermissionManager(user)
             if not user_permission.has_any_permission(action_list):
