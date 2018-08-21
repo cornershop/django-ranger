@@ -10,7 +10,7 @@ def permission_required(action_list=None, *args, **kwargs):
     This decorator verifies if the user has permissions to perform
     any action contained by `action_list`.
 
-    The `action_list param expect the structure described bellow:
+    The `action_list` param expect the structure described bellow:
 
     [('can_view:module', {'module_id': 1}), ('can_manage:module', {'module_id': 12})]
 
