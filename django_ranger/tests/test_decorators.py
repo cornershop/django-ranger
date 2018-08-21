@@ -2,10 +2,10 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.test.client import RequestFactory
-from rest_framework.response import Response
 from model_mommy import mommy
+from rest_framework.response import Response
 
-from ..decorators import permission_required
+from ..decorators import permission_required, api_permission_required
 from ..models import UserGrant
 
 action_list = [('can_view:module', {'country_code': "MX"})]
