@@ -42,7 +42,7 @@ class PermissionManager(object):
         parameters_string = json.dumps(parameter_values, sort_keys=True)
         string_code = "{}-{}".format(permission_code, parameters_string)
         hash_code = hashlib.sha256(string_code)
-        return str(hash_code)
+        return hash_code.hexdigest()
 
     def has_permission(self, action_name, **parameter_values):
         """
