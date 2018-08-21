@@ -16,6 +16,11 @@ def view(*args, **kwargs):
     return Response()
 
 
+@api_permission_required(action_list)
+def api_view(*args, **kwargs):
+    return Response()
+
+
 class DecoratorTestCase(TestCase):
 
     def setUp(self):
@@ -73,4 +78,54 @@ class DecoratorTestCase(TestCase):
         response = view(request)
 
         self.assertEqual(response.status_code, 302)
+
+    # api_permission_required
+
+    def test_has_permission_api(self):
+        UserGrant.objects.create(user=self.user,
+                                 permission=self.can_view_permission,
+                                 parameter_values={'country_code': 'MX'})
+
+        rf = RequestFactory()
+        request = rf.get("/url/")
+        request.user = self.user
+        response = api_view(request)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_has_not_permission_api(self):
+        UserGrant.objects.create(user=self.user,
+                                 permission=self.can_view_permission,
+                                 parameter_values={'country_code': 'CL'})
+
+        rf = RequestFactory()
+        request = rf.get("/url/")
+        request.user = self.user
+        response = api_view(request)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_incorrect_request_api(self):
+        UserGrant.objects.create(user=self.user,
+                                 permission=self.can_view_permission,
+                                 parameter_values={'country_code': 'CL'})
+
+        class Obj(object):
+            pass
+
+        with self.assertRaises(ValueError):
+            api_view(Obj)
+
+    def test_user_not_authenticated_api(self):
+        UserGrant.objects.create(user=self.user,
+                                 permission=self.can_view_permission,
+                                 parameter_values={'country_code': 'CL'})
+
+        rf = RequestFactory()
+        request = rf.get("/url/")
+        request.user = AnonymousUser()
+        response = api_view(request)
+
+        self.assertEqual(response.status_code, 401)
+
 
