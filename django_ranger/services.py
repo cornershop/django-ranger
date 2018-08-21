@@ -59,6 +59,20 @@ class PermissionManager(object):
 
         return False
 
+    def has_any_permission(self, action_list):
+        """
+        Receive a list of tuple's with their action_name and parameters values
+        e.g:
+        [('can_view:module', {'module_id': 1}), ('can_manage:module', {'module_id': 12})]
+        """
+
+        for action_name, parameter_values in action_list:
+            if self.has_permission(action_name, **parameter_values):
+                return True
+
+        return False
+
+
 def has_permission(user_id, action_name, **parameter_values):
     """
     Verify if one user have permissions to perform the requested action with the given parameters
