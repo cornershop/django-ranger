@@ -55,10 +55,10 @@ def api_permission_required(action_list=None, *args, **kwargs):
     def renderer(function):
         @wraps(function)
         def wrapper(obj, *args, **kwargs):
-            if not hasattr(obj, "request"):
+            if not hasattr(obj, "user"):
                 raise ValueError("ERROR: The specified object is not a proper request")
 
-            user = obj.request.user
+            user = obj.user
 
             if not user.is_authenticated():
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
