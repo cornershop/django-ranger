@@ -79,6 +79,14 @@ class UserGrant(ValidatingGrantModel, models.Model):
     def __str__(self):
         return self.permission.code
 
+    def complies(self, expected_grant):
+        """
+        Verifies if the grant match with the expected grant.
+        """
+        permissions_are_equal = self.permission == expected_grant.permission
+        parameters_are_equal = self.parameter_values == expected_grant.parameter_values
+        return permissions_are_equal and (parameters_are_equal or self.parameter_values == {})
+
 
 class GroupGrant(ValidatingGrantModel, models.Model):
     """

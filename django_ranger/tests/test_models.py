@@ -36,6 +36,79 @@ class ModelsTestCase(TestCase):
         created = UserGrant.objects.create(user=self.user, permission=can_view_permission)
         self.assertTrue(created)
 
+    def test_user_grant_complies(self):
+        can_view_permission = mommy.make("django_ranger.Permission",
+                                         code=self.can_view_code,
+                                         parameters_definition=['model_id'])
+        user_2 = mommy.make(settings.AUTH_USER_MODEL)
+
+        user_grant = UserGrant.objects.create(user=self.user, permission=can_view_permission)
+        user_grant_2 = UserGrant.objects.create(user=user_2, permission=can_view_permission)
+
+        self.assertTrue(user_grant.complies(user_grant_2))
+
+    def test_user_grant_complies_with_params(self):
+        can_view_permission = mommy.make("django_ranger.Permission",
+                                         code=self.can_view_code,
+                                         parameters_definition=['model_id'])
+        user_2 = mommy.make(settings.AUTH_USER_MODEL)
+
+        user_grant = UserGrant.objects.create(user=self.user,
+                                              permission=can_view_permission,
+                                              parameter_values={'model_id': 1})
+        user_grant_2 = UserGrant.objects.create(user=user_2,
+                                                permission=can_view_permission,
+                                                parameter_values={'model_id': 1})
+
+        self.assertTrue(user_grant.complies(user_grant_2))
+
+    def test_user_grant_not_complies_with_params(self):
+        can_view_permission = mommy.make("django_ranger.Permission",
+                                         code=self.can_view_code,
+                                         parameters_definition=['model_id'])
+        user_2 = mommy.make(settings.AUTH_USER_MODEL)
+
+        user_grant = UserGrant.objects.create(user=self.user,
+                                              permission=can_view_permission,
+                                              parameter_values={'model_id': 1})
+        user_grant_2 = UserGrant.objects.create(user=user_2,
+                                                permission=can_view_permission,
+                                                parameter_values={'model_id': 2})
+
+        self.assertFalse(user_grant.complies(user_grant_2))
+
+    def test_user_grant_not_complies(self):
+        can_view_permission = mommy.make("django_ranger.Permission",
+                                         code=self.can_view_code,
+                                         parameters_definition=['model_id'])
+        user_2 = mommy.make(settings.AUTH_USER_MODEL)
+
+        user_grant = UserGrant.objects.create(user=self.user,
+                                              permission=can_view_permission,
+                                              parameter_values={'model_id': 1})
+        user_grant_2 = UserGrant.objects.create(user=user_2, permission=can_view_permission)
+
+        self.assertFalse(user_grant.complies(user_grant_2))
+
+    def test_user_grant_not_complies_for_different_permissions(self):
+        can_view_permission = mommy.make("django_ranger.Permission",
+                                         code=self.can_view_code,
+                                         parameters_definition=['model_id'])
+
+        can_edit_permission = mommy.make("django_ranger.Permission",
+                                         code="can_edit:module",
+                                         parameters_definition=['model_id'])
+        user_2 = mommy.make(settings.AUTH_USER_MODEL)
+
+        user_grant = UserGrant.objects.create(user=self.user,
+                                              permission=can_view_permission,
+                                              parameter_values={})
+        user_grant_2 = UserGrant.objects.create(user=user_2,
+                                                permission=can_edit_permission,
+                                                parameter_values={'model_id': 1})
+
+        self.assertFalse(user_grant.complies(user_grant_2))
+
     def test_permission_repr(self):
         can_view_permission = mommy.make("django_ranger.Permission", code=self.can_view_code)
         expected_repr = 'Permission(%r, parameters=[])' % self.can_view_code
