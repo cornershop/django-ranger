@@ -1,11 +1,9 @@
 # Use modern Python
 from __future__ import unicode_literals, absolute_import, print_function
-import hashlib
-import json
 
-from django.db.models import Q
+from django.utils.functional import cached_property
 
-from .models import Permission, GroupGrant
+from .models import Permission, UserGrant, GroupGrant
 
 
 class PermissionManager(object):
@@ -17,45 +15,24 @@ class PermissionManager(object):
     """
 
     def __init__(self, user):
-        self.data = []
-        self.user_grants = user.user_grants.select_related('permission').all()
-        group_list = list(user.groups.all())
-        self.group_grants = GroupGrant.objects.filter(group__in=group_list).select_related('permission').all()
+        self.user = user
 
-        self.set_grant_hashes(self.user_grants)
-        self.set_grant_hashes(self.group_grants)
-        self.data = list(set(self.data))
-
-    def set_grant_hashes(self, grants):
-        """
-        store the given grants into a hashes list.
-        """
-        for grant in grants:
-            hash_code = self.get_hash(grant.permission.code, grant.parameter_values)
-            self.data.append(hash_code)
-
-    @staticmethod
-    def get_hash(permission_code, parameter_values):
-        """
-        It's return a hash of the permission and their parameters.
-        """
-        parameters_string = json.dumps(parameter_values, sort_keys=True)
-        string_code = "{}-{}".format(permission_code, parameters_string)
-        hash_code = hashlib.sha256(string_code)
-        return hash_code.hexdigest()
+    @cached_property
+    def _grants(self):
+        user_grants = list(self.user.user_grants.select_related('permission').all())
+        group_grants = list(GroupGrant.objects.filter(group__in=self.user.groups.all()).select_related('permission'))
+        return map(_convert_group_grant_to_user_grant, group_grants) + user_grants
 
     def has_permission(self, action_name, **parameter_values):
         """
         Verifies if the instantiated user has the given permission with
         the given parameters.
         """
-        hash_code = self.get_hash(action_name, parameter_values)
-        if hash_code in self.data:
-            return True
-
-        hash_code = self.get_hash(action_name, {})
-        if hash_code in self.data:
-            return True
+        permission = Permission.objects.get(code=action_name)
+        expected_grant = UserGrant(permission=permission, parameter_values=parameter_values)
+        for grant in self._grants:
+            if grant.complies(expected_grant):
+                return True
 
         return False
 
@@ -73,3 +50,8 @@ class PermissionManager(object):
         return False
 
 
+def _convert_group_grant_to_user_grant(group_grant):
+    user_grant = UserGrant()
+    user_grant.permission = group_grant.permission
+    user_grant.parameter_values = group_grant.parameter_values
+    return user_grant

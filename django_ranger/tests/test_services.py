@@ -28,10 +28,8 @@ class HasPermissionTestCase(TestCase):
         mommy.make("django_ranger.UserGrant", user=self.user, permission=self.can_view_permission)
 
         user_permission = PermissionManager(self.user)
-        self.assertEqual(user_permission.group_grants.count(), 1)
-        self.assertEqual(user_permission.user_grants.count(), 1)
         response = user_permission.has_permission(self.can_view_code)
-        self.assertTrue(response, user_permission.data)
+        self.assertTrue(response)
 
     def test_permission_manager_has_permission_without_param(self):
 
@@ -41,10 +39,8 @@ class HasPermissionTestCase(TestCase):
         mommy.make("django_ranger.UserGrant", user=self.user, permission=self.can_view_permission)
 
         user_permission = PermissionManager(self.user)
-        self.assertEqual(user_permission.group_grants.count(), 1)
-        self.assertEqual(user_permission.user_grants.count(), 1)
         response = user_permission.has_permission(self.can_view_code, model_id=1)
-        self.assertTrue(response, user_permission.data)
+        self.assertTrue(response)
 
     def test_permission_manager_has_not_permission(self):
         params = {
@@ -55,10 +51,8 @@ class HasPermissionTestCase(TestCase):
                    parameter_values=params)
 
         user_permission = PermissionManager(self.user)
-        self.assertEqual(user_permission.group_grants.count(), 1)
-        self.assertEqual(user_permission.user_grants.count(), 0)
         response = user_permission.has_permission(self.can_view_with_param_code, model_id=2)
-        self.assertFalse(response, user_permission.data)
+        self.assertFalse(response)
 
     def test_permission_manager_has_not_permission_without_param(self):
         params = {
@@ -69,10 +63,8 @@ class HasPermissionTestCase(TestCase):
                    parameter_values=params)
 
         user_permission = PermissionManager(self.user)
-        self.assertEqual(user_permission.group_grants.count(), 1)
-        self.assertEqual(user_permission.user_grants.count(), 0)
         response = user_permission.has_permission(self.can_view_with_param_code)
-        self.assertFalse(response, user_permission.data)
+        self.assertFalse(response)
 
     def test_permission_manager_has_any_permission(self):
         params = {
@@ -86,7 +78,7 @@ class HasPermissionTestCase(TestCase):
 
         user_permission = PermissionManager(self.user)
         response = user_permission.has_any_permission(action_list)
-        self.assertTrue(response, user_permission.data)
+        self.assertTrue(response)
 
     def test_permission_manager_has_not_any_permission(self):
         params = {
@@ -100,7 +92,4 @@ class HasPermissionTestCase(TestCase):
 
         user_permission = PermissionManager(self.user)
         response = user_permission.has_any_permission(action_list)
-        self.assertFalse(response, user_permission.data)
-
-
-
+        self.assertFalse(response)
