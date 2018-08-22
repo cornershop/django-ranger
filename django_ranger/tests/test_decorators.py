@@ -11,6 +11,10 @@ from ..models import UserGrant
 action_list = [('can_view:module', {'country_code': "MX"})]
 
 
+class Obj(object):
+    request = None
+
+
 @permission_required(action_list)
 def view(*args, **kwargs):
     return Response()
@@ -85,11 +89,12 @@ class DecoratorTestCase(TestCase):
         UserGrant.objects.create(user=self.user,
                                  permission=self.can_view_permission,
                                  parameter_values={'country_code': 'MX'})
-
         rf = RequestFactory()
         request = rf.get("/url/")
         request.user = self.user
-        response = api_view(request)
+        obj = Obj()
+        obj.request = request
+        response = api_view(obj)
 
         self.assertEqual(response.status_code, 200)
 
@@ -101,7 +106,9 @@ class DecoratorTestCase(TestCase):
         rf = RequestFactory()
         request = rf.get("/url/")
         request.user = self.user
-        response = api_view(request)
+        obj = Obj()
+        obj.request = request
+        response = api_view(obj)
 
         self.assertEqual(response.status_code, 403)
 
@@ -124,8 +131,9 @@ class DecoratorTestCase(TestCase):
         rf = RequestFactory()
         request = rf.get("/url/")
         request.user = AnonymousUser()
-        response = api_view(request)
-
+        obj = Obj()
+        obj.request = request
+        response = api_view(obj)
         self.assertEqual(response.status_code, 401)
 
 
