@@ -20,14 +20,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='GroupGrant',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_grants', to='auth.Group')),
-                ('parameter_values', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
-            ],
-        ),
-        migrations.CreateModel(
             name='Permission',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -38,18 +30,24 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='GroupGrant',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_grants', to='auth.Group')),
+                ('permission',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='permission_group_grants',
+                                   to='django_ranger.Permission')),
+                ('parameter_values', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
+            ],
+        ),
+        migrations.CreateModel(
             name='UserGrant',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('parameter_values', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
-                ('permission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='permission_user_grants', to='django_ranger.Permission')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_grants', to=settings.AUTH_USER_MODEL)),
+                ('permission', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='permission_user_grants', to='django_ranger.Permission')),
+                ('parameter_values', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
             ],
-        ),
-        migrations.AddField(
-            model_name='groupgrant',
-            name='permission',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='permission_group_grants', to='django_ranger.Permission'),
         ),
         migrations.AlterUniqueTogether(
             name='usergrant',
