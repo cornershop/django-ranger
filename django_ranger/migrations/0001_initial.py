@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             name='Permission',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(help_text='The formal slug for this role, which should be unique', max_length=256, unique=True)),
+                ('code', models.CharField(help_text='The formal code for this role, which should be unique', max_length=256, unique=True)),
                 ('parameters_definition', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=32), default=list, help_text='A set of strings which are the parameters for this role. Entered as a JSON list.', size=None)),
                 ('scope', models.CharField(help_text='The permission scope', max_length=256)),
                 ('description', models.TextField(blank=True, help_text='Description for this role')),

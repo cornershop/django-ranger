@@ -17,7 +17,7 @@ class Permission(models.Model):
 
     code = models.CharField(
         max_length=256,
-        help_text='The formal slug for this role, which should be unique',
+        help_text='The formal code for this role, which should be unique',
         unique=True,
     )
 
