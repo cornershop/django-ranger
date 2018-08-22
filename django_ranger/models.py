@@ -33,7 +33,7 @@ class Permission(models.Model):
 
     parameters_definition = ArrayField(
         models.CharField(max_length=32),
-        help_text='A set of strings which are the parameters for this role. Entered as a JSON list.',
+        help_text='A list of strings which are the parameters for this role.',
         default=list,
     )
 
