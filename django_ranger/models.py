@@ -87,6 +87,18 @@ class UserGrant(ValidatingGrantModel, models.Model):
         parameters_are_equal = self.parameter_values == expected_grant.parameter_values
         return permissions_are_equal and (parameters_are_equal or self.parameter_values == {})
 
+    def complies_any(self, action_list):
+        """
+        Verifies if the grant match with the expected grant.
+        """
+        for action in action_list:
+            permissions_are_equal = self.permission.code == action[0]
+            parameters_are_equal = self.parameter_values.keys() == action[1].keys()
+            if permissions_are_equal and (parameters_are_equal or self.parameter_values == {}):
+                return True
+
+        return False
+
 
 class GroupGrant(ValidatingGrantModel, models.Model):
     """
