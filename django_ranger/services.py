@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, absolute_import, print_function
 
 from django.utils.functional import cached_property
+from django.db.models import Q, QuerySet
 
 from .models import Permission, UserGrant, GroupGrant
 
@@ -52,4 +53,91 @@ class PermissionManager(object):
 
         return False
 
+
+class RangerQuerySet(QuerySet):
+    """
+    This is a reimplementation of QuerySet to make querying filtering by user grants.
+
+    It needs to be instantiated with a Model class or a QuerySet instance,
+    a user permission manager (PermissionManager) instance, and their
+    permission definitions.
+
+    Returns a RangerQuerySet filtered by the requested permissions
+
+    """
+
+    def __init__(self, model, permission_manager=None, permissions_definition=list, query=None, *args, **kwargs):
+        if isinstance(model, QuerySet):
+            queryset = model
+            model = model.model
+            query = queryset.query.clone()
+
+        self.permission_manager = permission_manager
+        self.permissions_definition = permissions_definition
+        super(RangerQuerySet, self).__init__(model, query, *args, **kwargs)
+
+    def all(self, _filter_by_permissions=True):
+        """
+        Returns a new QuerySet that is a copy of the current one. This allows a
+        QuerySet to proxy for a model manager in some cases.
+        """
+        return self.filter(_filter_by_permissions)
+
+    def filter(self, _filter_by_permissions=True, *args, **kwargs):
+        """
+        Returns a new QuerySet instance with the args ANDed to the existing
+        set filtered by the user permissions.
+        """
+        queryset = self._filter_or_exclude(False, *args, **kwargs)
+        if _filter_by_permissions and self.permission_manager and self.permissions_definition:
+            queryset = self._filtered_by_permissions(queryset)
+
+        return queryset
+
+    def _filtered_by_permissions(self, queryset):
+        """
+        Returns a new QuerySet instance filtered by the user permissions.
+        """
+
+        # obtains the needed grant for this query.
+        grants = filter(lambda x: x.complies_any(self.permissions_definition), self.permission_manager.get_grants())
+        if not grants:
+            return self.none()
+
+        query = self._create_query(grants)
+        queryset = queryset.filter(False, query)
+
+        return queryset
+
+    def _create_query(self, grants):
+        """
+        Returns a Query expression built off the user grants.
+        """
+
+        action = self.permissions_definition[:1][0]
+        params = self._convert_to_dict_query(grants, action[1])
+        query = Q(**params)
+
+        for action in self.permissions_definition[1:]:
+            params = self._convert_to_dict_query(grants, action[1])
+            query = query or Q(**params)
+
+        return query
+
+    @staticmethod
+    def _convert_to_dict_query(grants, lookups):
+        """
+        Returns a dict that can be passed by params to the .filter() method
+        for make querying.
+        """
+        params = {}
+        for grant in grants:
+            for key in grant.parameter_values.keys():
+                lookup_key = "{lookup}__in".format(lookup=lookups.get(key, key))
+                if lookup_key not in params.keys():
+                    params[lookup_key] = [grant.parameter_values.get(key)]
+                else:
+                    params[lookup_key].append(grant.parameter_values.get(key))
+
+        return params
 
