@@ -21,7 +21,10 @@ class PermissionManager(object):
     def _grants(self):
         user_grants = list(self.user.user_grants.select_related('permission').all())
         group_grants = list(GroupGrant.objects.filter(group__in=self.user.groups.all()).select_related('permission'))
-        return map(_convert_group_grant_to_user_grant, group_grants) + user_grants
+        return map(lambda x: x.to_user_grant(self.user), group_grants) + user_grants
+
+    def get_grants(self):
+        return self._grants
 
     def has_permission(self, action_name, **parameter_values):
         """
@@ -50,8 +53,3 @@ class PermissionManager(object):
         return False
 
 
-def _convert_group_grant_to_user_grant(group_grant):
-    user_grant = UserGrant()
-    user_grant.permission = group_grant.permission
-    user_grant.parameter_values = group_grant.parameter_values
-    return user_grant

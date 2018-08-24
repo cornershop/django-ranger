@@ -132,3 +132,14 @@ class GroupGrant(ValidatingGrantModel, models.Model):
 
     def __str__(self):
         return self.permission.code
+
+    def to_user_grant(self, user=None):
+        """
+        Converts a GroupGrant instance to UserGrant
+        """
+        user_grant = UserGrant()
+        if user:
+            user_grant.user = user
+        user_grant.permission = self.permission
+        user_grant.parameter_values = self.parameter_values
+        return user_grant
