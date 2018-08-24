@@ -2,7 +2,7 @@ from django.conf import settings
 from django.test import TestCase
 from model_mommy import mommy
 
-from ..services import PermissionManager
+from ..services import PermissionManager, RangerQuerySet
 
 
 class HasPermissionTestCase(TestCase):
@@ -93,3 +93,148 @@ class HasPermissionTestCase(TestCase):
         user_permission = PermissionManager(self.user)
         response = user_permission.has_any_permission(action_list)
         self.assertFalse(response)
+
+
+class RangerQuerySetTestCase(TestCase):
+
+    def setUp(self):
+        self.user = mommy.make(settings.AUTH_USER_MODEL, is_active=True)
+        self.user = mommy.make(settings.AUTH_USER_MODEL, is_active=False)
+        self.group = mommy.make("auth.Group")
+        self.user.groups.add(self.group)
+        self.can_view_code = "can_view:users"
+        self.can_view_with_param_code = "can_view_with_param:users"
+        self.can_view_permission = mommy.make("django_ranger.Permission", code=self.can_view_code)
+        self.can_view_permission_with_param = mommy.make("django_ranger.Permission",
+                                                         code=self.can_view_with_param_code,
+                                                         parameters_definition=["active"])
+
+    def test_get_all_by_permissions(self):
+        params = {
+            "active": True
+        }
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_model = self.user._meta.model
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.all()
+        self.assertEqual(queryset.count(), 1)
+
+    def test_get_all_by_permissions_without_params(self):
+
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={})
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_model = self.user._meta.model
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.all()
+        self.assertEqual(queryset.count(), 2)
+
+    def test_filter_by_permissions(self):
+        params = {
+            "active": True
+        }
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_model = self.user._meta.model
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.filter()
+        self.assertEqual(queryset.count(), 1)
+
+    def test_filter_queryset_by_permissions(self):
+        params = {
+            "active": True
+        }
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values=params)
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_queryset = self.user._meta.model.objects.filter()
+
+        queryset = RangerQuerySet(user_queryset, user_permission, action_list)
+        queryset = queryset.filter()
+        self.assertEqual(queryset.count(), 1)
+
+    def test_filter_queryset_by_permissions_without_params(self):
+
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={})
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_queryset = self.user._meta.model.objects.filter(is_active=False)
+
+        queryset = RangerQuerySet(user_queryset, user_permission, action_list)
+        queryset = queryset.filter()
+        self.assertEqual(queryset.count(), 1)
+
+    def test_filter_queryset_by_permissions_using_filter(self):
+
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={})
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_queryset = self.user._meta.model.objects.filter()
+
+        queryset = RangerQuerySet(user_queryset, user_permission, action_list)
+        queryset = queryset.filter(is_active=True)
+        self.assertEqual(queryset.count(), 1)
+
+    def test_filter_by_permissions_without_params(self):
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={})
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_model = self.user._meta.model
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.filter(is_active=False)
+        self.assertEqual(queryset.count(), 1)
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.filter(is_active=True)
+        self.assertEqual(queryset.count(), 1)
+
+    def test_filter_by_permissions_without_params_and_void_filter(self):
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={})
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_model = self.user._meta.model
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.filter()
+        self.assertEqual(queryset.count(), 2)
+
+    def test_filter_without_permissions(self):
+
+        action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
+        user_permission = PermissionManager(self.user)
+        user_model = self.user._meta.model
+
+        queryset = RangerQuerySet(user_model, user_permission, action_list)
+        queryset = queryset.filter()
+        self.assertEqual(queryset.count(), 0)
