@@ -114,30 +114,28 @@ class RangerQuerySet(QuerySet):
         Returns a Query expression built off the user grants.
         """
 
-        action = self.permissions_definition[:1][0]
-        params = self._convert_to_dict_query(grants, action[1])
-        query = Q(**params)
-
-        for action in self.permissions_definition[1:]:
-            params = self._convert_to_dict_query(grants, action[1])
-            query = query or Q(**params)
+        query = Q()
+        for action in self.permissions_definition:
+            grant = filter(lambda x: x.complies_any([action]), grants)
+            if grant:
+                params = self._convert_to_dict_query(grant[0], action[1])
+                query = query or Q(**params)
 
         return query
 
     @staticmethod
-    def _convert_to_dict_query(grants, lookups):
+    def _convert_to_dict_query(grant, lookups):
         """
         Returns a dict that can be passed by params to the .filter() method
         for make querying.
         """
         params = {}
-        for grant in grants:
-            for key in grant.parameter_values.keys():
-                lookup_key = "{lookup}__in".format(lookup=lookups.get(key, key))
-                if lookup_key not in params.keys():
-                    params[lookup_key] = [grant.parameter_values.get(key)]
-                else:
-                    params[lookup_key].append(grant.parameter_values.get(key))
+        for key in grant.parameter_values.keys():
+            lookup_key = "{lookup}__in".format(lookup=lookups.get(key, key))
+            if lookup_key not in params.keys():
+                params[lookup_key] = [grant.parameter_values.get(key)]
+            else:
+                params[lookup_key].append(grant.parameter_values.get(key))
 
         return params
 
