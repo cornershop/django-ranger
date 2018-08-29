@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, absolute_import, print_function
+from collections import Counter
 
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
@@ -93,7 +94,7 @@ class UserGrant(ValidatingGrantModel, models.Model):
         """
         for action in action_list:
             permissions_are_equal = self.permission.code == action[0]
-            parameters_are_equal = self.parameter_values.keys() == action[1].keys()
+            parameters_are_equal = Counter(self.parameter_values.keys()) == Counter(action[1].keys())
             if permissions_are_equal and (parameters_are_equal or self.parameter_values == {}):
                 return True
 
