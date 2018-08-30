@@ -131,11 +131,8 @@ class RangerQuerySet(QuerySet):
         """
         params = {}
         for key in grant.parameter_values.keys():
-            lookup_key = "{lookup}__in".format(lookup=lookups.get(key, key))
-            if lookup_key not in params.keys():
-                params[lookup_key] = [grant.parameter_values.get(key)]
-            else:
-                params[lookup_key].append(grant.parameter_values.get(key))
+            lookup_key = lookups.get(key, key)
+            params[lookup_key] = grant.parameter_values[key]
 
         return params
 
