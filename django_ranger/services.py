@@ -115,14 +115,9 @@ class RangerQuerySet(QuerySet):
         """
         query_list = []
 
-        for action in self.permissions_definition:
-            grants = filter(lambda x: x.complies_any([action]), grants)
-            if not grants:
-                continue
-
-            for grant in grants:
-                params = self._convert_to_dict_query(grant, action[1])
-                query_list.append(Q(**params))
+        for grant in filter(lambda x: x.complies_any(self.permissions_definition), grants):
+            params = self._convert_to_dict_query(grant)
+            query_list.append(Q(**params))
 
         query = query_list.pop()
         for item_query in query_list:
@@ -130,12 +125,13 @@ class RangerQuerySet(QuerySet):
 
         return query
 
-    @staticmethod
-    def _convert_to_dict_query(grant, lookups):
+    def _convert_to_dict_query(self, grant):
         """
         Returns a dict that can be passed by params to the .filter() method
         for make querying.
         """
+        action = filter(lambda x: grant.complies_any([x]), self.permissions_definition)[0]
+        lookups = action[1]
         params = {}
         for key in grant.parameter_values.keys():
             lookup_key = lookups.get(key, key)
