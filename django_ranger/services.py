@@ -113,13 +113,20 @@ class RangerQuerySet(QuerySet):
         """
         Returns a Query expression built off the user grants.
         """
+        query_list = []
 
-        query = Q()
         for action in self.permissions_definition:
-            grant = filter(lambda x: x.complies_any([action]), grants)
-            if grant:
-                params = self._convert_to_dict_query(grant[0], action[1])
-                query = query or Q(**params)
+            grants = filter(lambda x: x.complies_any([action]), grants)
+            if not grants:
+                continue
+
+            for grant in grants:
+                params = self._convert_to_dict_query(grant, action[1])
+                query_list.append(Q(**params))
+
+        query = query_list.pop()
+        for item_query in query_list:
+            query = query | item_query
 
         return query
 

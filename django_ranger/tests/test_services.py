@@ -189,11 +189,14 @@ class RangerQuerySetTestCase(TestCase):
 
         mommy.make("django_ranger.UserGrant", user=self.user,
                    permission=self.can_view_permission_with_param,
-                   parameter_values={})
+                   parameter_values={'active': True})
+        mommy.make("django_ranger.UserGrant", user=self.user,
+                   permission=self.can_view_permission_with_param,
+                   parameter_values={'active': False})
 
         action_list = [(self.can_view_with_param_code, {'active': 'is_active'}), (self.can_view_code, {})]
         user_permission = PermissionManager(self.user)
-        user_queryset = self.user._meta.model.objects.filter()
+        user_queryset = self.user._meta.model.objects.all()
 
         queryset = RangerQuerySet(user_queryset, user_permission, action_list)
         queryset = queryset.filter(is_active=True)
