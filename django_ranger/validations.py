@@ -1,3 +1,5 @@
+from collections import Counter
+
 from .exceptions import ParameterError
 
 
@@ -18,7 +20,7 @@ class ValidatingGrantModel(object):
 
         definition = self.permission.parameters_definition
         values = self.parameter_values.keys()
-        if definition != values and values != []:
+        if Counter(definition) != Counter(values) and values != []:
             msg = u"parameter_values content is inconsistent with permission.parameters_definition {}-{}".format(
                 definition, values)
             raise ParameterError(msg)
