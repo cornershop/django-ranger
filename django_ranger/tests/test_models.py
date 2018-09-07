@@ -28,6 +28,25 @@ class ModelsTestCase(TestCase):
                                      permission=can_view_permission,
                                      parameter_values={"model_id": 1})
 
+    def test_create_inconsistent_user_grant_with_multiple_params(self):
+        can_view_permission = mommy.make(
+            "django_ranger.Permission",
+            code=self.can_view_code,
+            parameters_definition=[
+                "param_c", "param_b", "param_a"
+            ])
+
+        user_grant = UserGrant.objects.create(
+                user=self.user,
+                permission=can_view_permission,
+                parameter_values={
+                    u"param_a": 7,
+                    u"param_c": 5,
+                    u"param_b": 4,
+                }
+            )
+        self.assertTrue(user_grant)
+
     def test_create_grant_without_param(self):
         can_view_permission = mommy.make("django_ranger.Permission",
                                          code=self.can_view_code,

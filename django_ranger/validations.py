@@ -18,9 +18,9 @@ class ValidatingGrantModel(object):
         if not hasattr(self, "parameter_values"):
             raise AttributeError(u"The model must have a parameter_values field")
 
-        definition = self.permission.parameters_definition
-        values = self.parameter_values.keys()
-        if Counter(definition) != Counter(values) and values != []:
+        definition = sorted(self.permission.parameters_definition)
+        values = sorted(self.parameter_values.keys())
+        if definition != values and values != []:
             msg = u"parameter_values content is inconsistent with permission.parameters_definition {}-{}".format(
                 definition, values)
             raise ParameterError(msg)
