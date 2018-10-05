@@ -117,6 +117,11 @@ class RangerQuerySet(QuerySet):
 
         for grant in filter(lambda x: x.complies_any(self.permissions_definition), grants):
             params = self._convert_to_dict_query(grant)
+
+            if params == {}:
+                # if exists a permission without params, the other permissions are ignored
+                return Q(**params)
+
             query_list.append(Q(**params))
 
         query = query_list.pop()
