@@ -102,8 +102,8 @@ class RangerQuerySetTestCase(TestCase):
         self.user = mommy.make(settings.AUTH_USER_MODEL, is_active=False)
         self.group = mommy.make("auth.Group")
         self.user.groups.add(self.group)
-        self.can_view_code = "can_view:users"
-        self.can_view_with_param_code = "can_view_with_param:users"
+        self.can_view_code = "can_view_users"
+        self.can_view_with_param_code = "can_view_with_param_users"
         self.can_view_permission = mommy.make("django_ranger.Permission", code=self.can_view_code)
         self.can_view_permission_with_param = mommy.make("django_ranger.Permission",
                                                          code=self.can_view_with_param_code,
