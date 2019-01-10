@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 from django.db.models import Q, QuerySet
 
 from .models import Permission, UserGrant, GroupGrant
-from .exceptions import DoesNotExist
+from .exceptions import DoesNotExist, PermissionNotRevocable
 
 
 class PermissionManager(object):
@@ -16,6 +16,7 @@ class PermissionManager(object):
      grants to achieve a better performance in multiple permission verifications.
     """
     DoesNotExist = DoesNotExist
+    PermissionNotRevocable = PermissionNotRevocable
 
     def __init__(self, user):
         self.user = user
@@ -54,15 +55,21 @@ class PermissionManager(object):
 
     def revoke_permission(self, action_name, **parameter_values):
         """
-        Delete an UserGrant for the instanced user with the given permission.
-        If the grant doesn't exists, this method raise an exception.
+        Delete a UserGrant for the instanced user with the given permission.
+
+        If the grant doesn't exists, this method raise an DoesNotExist exception.
+
+        But if the user has this permission from a different way (e.g through GroupGrant or permission without params),
+        it raise a PermissionNotRevocable exception.
         """
         permission = Permission.objects.get(code=action_name)
         user_grant = UserGrant.objects.filter(user=self.user, permission=permission, parameter_values=parameter_values)
         if user_grant.exists():
             user_grant.delete()
-        else:
+        elif not self.has_permission(action_name, **parameter_values):
             raise self.DoesNotExist("Permission {} does not granted".format(permission.code))
+        else:
+            raise self.PermissionNotRevocable("Permission {} does not granted".format(permission.code))
 
     def has_any_permission(self, action_list):
         """
