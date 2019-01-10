@@ -5,6 +5,7 @@ from django.utils.functional import cached_property
 from django.db.models import Q, QuerySet
 
 from .models import Permission, UserGrant, GroupGrant
+from .exceptions import DoesNotExist
 
 
 class PermissionManager(object):
@@ -14,6 +15,7 @@ class PermissionManager(object):
     It is instantiated with a user instance and enlists all their permissions
      grants to achieve a better performance in multiple permission verifications.
     """
+    DoesNotExist = DoesNotExist
 
     def __init__(self, user):
         self.user = user
@@ -49,6 +51,18 @@ class PermissionManager(object):
         query = Q(user=self.user, permission=permission) & Q(parameter_values=parameter_values) | Q(parameter_values={})
         if not UserGrant.objects.filter(query).exists():
             UserGrant.objects.create(permission=permission, user=self.user, parameter_values=parameter_values)
+
+    def revoke_permission(self, action_name, **parameter_values):
+        """
+        Delete an UserGrant for the instanced user with the given permission.
+        If the grant doesn't exists, this method raise an exception.
+        """
+        permission = Permission.objects.get(code=action_name)
+        user_grant = UserGrant.objects.filter(user=self.user, permission=permission, parameter_values=parameter_values)
+        if user_grant.exists():
+            user_grant.delete()
+        else:
+            raise self.DoesNotExist("Permission {} does not granted".format(permission.code))
 
     def has_any_permission(self, action_list):
         """

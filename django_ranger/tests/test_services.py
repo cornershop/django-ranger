@@ -40,6 +40,30 @@ class HasPermissionTestCase(TestCase):
         user_grant = UserGrant.objects.filter(permission__code=self.can_view_with_param_code, user=self.user, parameter_values=params)
         self.assertFalse(user_grant.exists())
 
+    def test_permission_manager_revoke_permission(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make(
+            "django_ranger.UserGrant",
+            user=self.user,
+            permission=self.can_view_permission_with_param,
+            parameter_values=params
+        )
+
+        user_permission = PermissionManager(self.user)
+        user_permission.revoke_permission(self.can_view_with_param_code, **params)
+        user_grant = UserGrant.objects.filter(permission__code=self.can_view_permission_with_param, user=self.user, parameter_values=params)
+        self.assertFalse(user_grant.exists())
+
+    def test_permission_manager_revoke_permission_does_not_exists(self):
+        params = {
+            "model_id": 1
+        }
+        user_permission = PermissionManager(self.user)
+        with self.assertRaises(PermissionManager.DoesNotExist):
+            user_permission.revoke_permission(self.can_view_with_param_code, **params)
+
     def test_permission_manager_has_permission(self):
         params = {
             "model_id": 1
