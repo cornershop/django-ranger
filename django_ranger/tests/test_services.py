@@ -2,6 +2,7 @@ from django.conf import settings
 from django.test import TestCase
 from model_mommy import mommy
 
+from ..models import UserGrant
 from ..services import PermissionManager, RangerQuerySet
 
 
@@ -17,6 +18,27 @@ class HasPermissionTestCase(TestCase):
         self.can_view_permission_with_param = mommy.make("django_ranger.Permission",
                                                          code=self.can_view_with_param_code,
                                                          parameters_definition=["model_id"])
+
+    def test_permission_manager_grant_permission(self):
+        params = {
+            "model_id": 1
+        }
+
+        user_permission = PermissionManager(self.user)
+        user_permission.grant_permission(self.can_view_with_param_code, **params)
+        user_grant = UserGrant.objects.filter(permission__code=self.can_view_with_param_code, user=self.user, parameter_values=params)
+        self.assertTrue(user_grant.exists())
+
+    def test_permission_manager_not_grant_permission_when_have_one_without_params(self):
+        params = {
+            "model_id": 1
+        }
+        mommy.make("django_ranger.UserGrant", user=self.user, permission=self.can_view_permission_with_param)
+
+        user_permission = PermissionManager(self.user)
+        user_permission.grant_permission(self.can_view_with_param_code, **params)
+        user_grant = UserGrant.objects.filter(permission__code=self.can_view_with_param_code, user=self.user, parameter_values=params)
+        self.assertFalse(user_grant.exists())
 
     def test_permission_manager_has_permission(self):
         params = {

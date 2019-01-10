@@ -40,6 +40,16 @@ class PermissionManager(object):
 
         return False
 
+    def grant_permission(self, action_name, **parameter_values):
+        """
+        Creates an UserGrant for the instanced user with the given permission.
+        If the grant already exists, this method does nothing.
+        """
+        permission = Permission.objects.get(code=action_name)
+        query = Q(user=self.user, permission=permission) & Q(parameter_values=parameter_values) | Q(parameter_values={})
+        if not UserGrant.objects.filter(query).exists():
+            UserGrant.objects.create(permission=permission, user=self.user, parameter_values=parameter_values)
+
     def has_any_permission(self, action_list):
         """
         Receive a list of tuple's with their action_name and parameters values
