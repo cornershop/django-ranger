@@ -49,7 +49,7 @@ class PermissionManager(object):
         If the grant already exists, this method does nothing.
         """
         permission = Permission.objects.get(code=action_name)
-        query = Q(user=self.user, permission=permission) & Q(parameter_values=parameter_values) | Q(parameter_values={})
+        query = Q(user=self.user, permission=permission) & (Q(parameter_values=parameter_values) | Q(parameter_values={}))
         if not UserGrant.objects.filter(query).exists():
             UserGrant.objects.create(permission=permission, user=self.user, parameter_values=parameter_values)
 
