@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from .services import PermissionManager
 
 
-def permission_required(action_list=None, *args, **kwargs):
+def permission_required(action_list=None, permission_class=None, *args, **kwargs):
     """
     This decorator verifies if the user has permissions to perform
     any action contained by `action_list`.
@@ -31,8 +31,13 @@ def permission_required(action_list=None, *args, **kwargs):
             if not user.is_authenticated():
                 return HttpResponseRedirect("/accounts/login/?next=" + request.path)
 
+            if permission_class:
+                permissions_list = permission_class(request=obj, **kwargs).get_permissions()
+            else:
+                permissions_list = action_list
+
             user_permission = PermissionManager(user)
-            if not user_permission.has_any_permission(action_list):
+            if not user_permission.has_any_permission(permissions_list):
                 # TODO change URL for a url set in the django settings
                 return HttpResponseRedirect("/accounts/login/?next=" + request.path)
 
@@ -41,7 +46,7 @@ def permission_required(action_list=None, *args, **kwargs):
     return renderer
 
 
-def api_permission_required(action_list=None, *args, **kwargs):
+def api_permission_required(action_list=None, permission_class=None, *args, **kwargs):
     """
     This decorator verifies if the user has permissions to perform
     any action contained by `action_list`.
@@ -63,8 +68,13 @@ def api_permission_required(action_list=None, *args, **kwargs):
             if not user.is_authenticated():
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+            if permission_class:
+                permissions_list = permission_class(request=obj, **kwargs).get_permissions()
+            else:
+                permissions_list = action_list
+
             user_permission = PermissionManager(user)
-            if not user_permission.has_any_permission(action_list):
+            if not user_permission.has_any_permission(permissions_list):
                 return Response(status=status.HTTP_403_FORBIDDEN)
 
             return function(obj, *args, **kwargs)
