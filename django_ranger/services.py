@@ -103,29 +103,30 @@ class RangerQuerySet(QuerySet):
             model = model.model
             query = queryset.query.clone()
 
+        self.is_filtered_by_permission = False
         self.permission_manager = permission_manager
         self.permissions_definition = permissions_definition
         super(RangerQuerySet, self).__init__(model, query, *args, **kwargs)
 
-    def all(self, _filter_by_permissions=True):
+    def all(self):
         """
         Returns a new QuerySet that is a copy of the current one. This allows a
         QuerySet to proxy for a model manager in some cases.
         """
-        return self.filter(_filter_by_permissions)
+        clone = self._clone()
+        if not self.is_filtered_by_permission:
+            clone = self._filtered_by_permissions(clone)
+            self.is_filtered_by_permission = True
+        return clone
 
-    def filter(self, _filter_by_permissions=True, *args, **kwargs):
-        """
-        Returns a new QuerySet instance with the args ANDed to the existing
-        set filtered by the user permissions.
-        """
-        queryset = self._filter_or_exclude(False, *args, **kwargs)
-        if _filter_by_permissions and self.permission_manager and self.permissions_definition:
-            queryset = self._filtered_by_permissions(queryset)
+    def filter(self, *args, **kwargs):
+        clone = super(RangerQuerySet, self).filter(*args, **kwargs)
+        if not self.is_filtered_by_permission:
+            clone = self._filtered_by_permissions(clone)
+            self.is_filtered_by_permission = True
+        return clone
 
-        return queryset
-
-    def _filtered_by_permissions(self, queryset):
+    def _filtered_by_permissions(self, clone):
         """
         Returns a new QuerySet instance filtered by the user permissions.
         """
@@ -136,9 +137,8 @@ class RangerQuerySet(QuerySet):
             return self.none()
 
         query = self._create_query(grants)
-        queryset = queryset.filter(False, query)
-
-        return queryset
+        clone.query.add_q(query)
+        return clone
 
     def _create_query(self, grants):
         """
