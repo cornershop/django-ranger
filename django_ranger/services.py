@@ -25,7 +25,7 @@ class PermissionManager(object):
     def _grants(self):
         user_grants = list(self.user.user_grants.select_related('permission').all())
         group_grants = list(GroupGrant.objects.filter(group__in=self.user.groups.all()).select_related('permission'))
-        return map(lambda x: x.to_user_grant(self.user), group_grants) + user_grants
+        return list(map(lambda x: x.to_user_grant(self.user), group_grants)) + user_grants
 
     def get_grants(self):
         return self._grants
@@ -132,7 +132,7 @@ class RangerQuerySet(QuerySet):
         """
 
         # obtains the needed grant for this query.
-        grants = filter(lambda x: x.complies_any(self.permissions_definition), self.permission_manager.get_grants())
+        grants = list(filter(lambda x: x.complies_any(self.permissions_definition), self.permission_manager.get_grants()))
         if not grants:
             return self.none()
 
@@ -166,7 +166,7 @@ class RangerQuerySet(QuerySet):
         Returns a dict that can be passed by params to the .filter() method
         for make querying.
         """
-        action = filter(lambda x: grant.complies_any([x]), self.permissions_definition)[0]
+        action = list(filter(lambda x: grant.complies_any([x]), self.permissions_definition))[0]
         lookups = action[1]
         params = {}
         for key in grant.parameter_values.keys():
