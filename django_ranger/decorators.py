@@ -21,7 +21,7 @@ def permission_required(action_list=None, permission_class=None, *args, **kwargs
     """
     final_action_list = action_list or []
     for action in final_action_list:
-        if type(action) != tuple:
+        if type(action) not in [tuple, list]:
             action = (action, {})
         final_action_list.append(action)
 
