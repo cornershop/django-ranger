@@ -19,6 +19,14 @@ def permission_required(action_list=None, permission_class=None, *args, **kwargs
     This decorator only works over django function based views. This is not tested for
     rest framework function based view.
     """
+    final_action_list = action_list or []
+    for action in final_action_list:
+        if type(action) != tuple:
+            action = (action, {})
+        final_action_list.append(action)
+
+    action_list = final_action_list
+
     def renderer(function):
         @wraps(function)
         def wrapper(obj, *args, **kwargs):
