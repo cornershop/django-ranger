@@ -19,6 +19,10 @@ def permission_required(action_list=None, permission_class=None, *args, **kwargs
     This decorator only works over django function based views. This is not tested for
     rest framework function based view.
     """
+
+    if action_list is None:
+        action_list = []
+
     def renderer(function):
         @wraps(function)
         def wrapper(obj, *args, **kwargs):
@@ -34,7 +38,13 @@ def permission_required(action_list=None, permission_class=None, *args, **kwargs
             if permission_class:
                 permissions_list = permission_class(request=obj, **kwargs).get_permissions()
             else:
-                permissions_list = action_list
+                final_action_list = []
+                for action in action_list:
+                    if type(action) not in [tuple, list]:
+                        action = (action, {})
+                    final_action_list.append(action)
+
+                permissions_list = final_action_list
 
             user_permission = PermissionManager(user)
             if not user_permission.has_any_permission(permissions_list):
