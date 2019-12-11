@@ -32,7 +32,7 @@ def permission_required(action_list=None, permission_class=None, *args, **kwargs
             request = obj
             user = obj.user
 
-            if not user.is_authenticated():
+            if not user.is_authenticated:
                 return HttpResponseRedirect("/accounts/login/?next=" + request.path)
 
             if permission_class:
@@ -75,7 +75,7 @@ def api_permission_required(action_list=None, permission_class=None, *args, **kw
 
             user = obj.user
 
-            if not user.is_authenticated():
+            if not user.is_authenticated:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if permission_class:

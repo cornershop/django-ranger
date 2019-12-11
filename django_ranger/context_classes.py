@@ -8,7 +8,7 @@ class BasePermissionContext(object):
     def get_user(self):
         if self.user:
             return self.user
-        if self.request and self.request.user and self.request.is_authenticated():
+        if self.request and self.request.user and self.request.is_authenticated:
             return self.request.user
         return None
 
