@@ -15,7 +15,7 @@ setup(
     license='BSD License',
     description='Parametrized Role Based Access Control (PRBAC) system',
     long_description=README,
-    url='',
+    url='https://github.com/cornershop/django-ranger',
     author='Richard Barrios',
     author_email='richard@cornershoapp.com',
     classifiers=[
