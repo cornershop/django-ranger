@@ -1,0 +1,27 @@
+version: 2.1
+
+jobs:
+  release-wheel:
+    docker:
+      - image: circleci/python:3.8.1
+    steps:
+      - checkout
+      - run:
+          name: Install s3pypi
+          command: pip install --no-warn-script-location --disable-pip-version-check --no-cache-dir --user s3pypi
+      - run:
+          name: Build wheel and upload to PyPI
+          command: s3pypi --bucket cornershop-pypi --private
+
+workflows:
+  version: 2
+  release:
+    jobs:
+      - release-wheel:
+          filters:
+            # ignore any commit on any branch
+            branches:
+              ignore: /.*/
+            # only act on version tags
+            tags:
+              only: /^\d+\.\d+\.\d+$/
