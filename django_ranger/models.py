@@ -4,12 +4,10 @@ from collections import Counter
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 from .validations import ValidatingGrantModel
 
 
-@python_2_unicode_compatible
 class Permission(models.Model):
     """
     A model class that stores permissions. It represents
