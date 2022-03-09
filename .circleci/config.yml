@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install s3pypi
-          command: pip install --no-warn-script-location --disable-pip-version-check --no-cache-dir --user s3pypi markupsafe==2.0.1
+          command: pip install --no-warn-script-location --disable-pip-version-check --no-cache-dir --user s3pypi==0.11.0 markupsafe==2.0.1
       - run:
           name: Build wheel and upload to PyPI
           command: s3pypi --bucket cornershop-pypi --private
