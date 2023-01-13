@@ -1,11 +1,16 @@
 version: 2.1
-
+orbs:
+  cornershop: cornershop/cornershop@2.3.0
 jobs:
   release-wheel:
     docker:
       - image: circleci/python:3.8.1
     steps:
       - checkout
+      - run:
+          name: Install aws-cli
+          command: pip3 install awscli --upgrade --user
+      - cornershop/aws-assume-role-from-oidc
       - run:
           name: Install s3pypi
           command: pip install --no-warn-script-location --disable-pip-version-check --no-cache-dir --user s3pypi==0.11.0 markupsafe==2.0.1
@@ -18,6 +23,8 @@ workflows:
   release:
     jobs:
       - release-wheel:
+          context:
+            - aws-ecr-pull-credentials 
           filters:
             # ignore any commit on any branch
             branches:
@@ -25,3 +32,5 @@ workflows:
             # only act on version tags
             tags:
               only: /^\d+\.\d+\.\d+$/
+context:
+  - aws-ecr-pull-credentials 
