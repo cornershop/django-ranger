@@ -23,6 +23,8 @@ workflows:
   release:
     jobs:
       - release-wheel:
+          context:
+            - aws-ecr-pull-credentials 
           filters:
             # ignore any commit on any branch
             branches:
@@ -30,3 +32,5 @@ workflows:
             # only act on version tags
             tags:
               only: /^\d+\.\d+\.\d+$/
+context:
+  - aws-ecr-pull-credentials 
