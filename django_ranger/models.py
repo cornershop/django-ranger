@@ -2,7 +2,7 @@ from __future__ import unicode_literals, absolute_import, print_function
 from collections import Counter
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField, ArrayField
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from .validations import ValidatingGrantModel
@@ -64,7 +64,7 @@ class UserGrant(ValidatingGrantModel, models.Model):
         on_delete=models.CASCADE,
     )
 
-    parameter_values = JSONField(
+    parameter_values = models.JSONField(
         blank=True,
         default=dict,
     )
@@ -118,7 +118,7 @@ class GroupGrant(ValidatingGrantModel, models.Model):
         on_delete=models.CASCADE,
     )
 
-    parameter_values = JSONField(
+    parameter_values = models.JSONField(
         blank=True,
         default=dict,
     )
